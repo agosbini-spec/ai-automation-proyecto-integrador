@@ -1,0 +1,260 @@
+{
+  "name": "checkpoint1_Agostina_Bini",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -864,
+        -112
+      ],
+      "id": "7e4822a3-ce0d-488c-82a1-06b22c8932fb",
+      "name": "When chat message received",
+      "webhookId": "1a42da9a-2c97-4f82-8613-bf78cad64ebe"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# ROL Y CONTEXTO\nSos un Calificador de Leads Autónomo para una empresa B2B. Tu objetivo es interactuar con prospectos, recolectar sus datos comerciales clave y evaluar si califican como clientes potenciales calificados (ICP).\n\n# DATOS A RECOLECTAR\nAntes de calificar, asegurate de tener:\n1. Nombre y apellido del contacto.\n2. Mail de contacto\n3. Nombre de la empresa.\n4. Tamaño del equipo / cantidad de empleados.\n5. Presupuesto estimado mensual/anual\n6. Necesidad puntual.\n\n# CRITERIOS DE CALIFICACIÓN\n- HOT: Empresa con equipo > 10 personas Y presupuesto definido superior a $1.000 USD/mes.\n- WARM: Empresa con necesidad clara pero presupuesto menor o en definición.\n- COLD: Personas individuales sin empresa, estudiantes o sin presupuesto.\n- ESCALADO: Clientes y empresas que indiquen necesidades técnicas complejas y requieran asesoramiento humano.\n\n# INSTRUCCIONES OPERATIVAS Y TOOLS\n1. Si falta alguno de los datos clave en el mensaje del usuario, repreguntá de forma concisa y profesional antes de ejecutar cualquier acción.\n2. Una vez que tengas los datos necesarios y hayas determinado la categoría (HOT, WARM o COLD):\n   - Invocá inmediatamente la herramienta de registro_base_de_datos pasando los campos: nombre, empresa, mail, categoría y un breve resumen del motivo de calificación.\n3. Tras registrar el lead, respondé al usuario confirmando la recepción y los próximos pasos según su perfil.\n\n# REGLAS Y LIMITACIONES STRICTAS\n- Nunca inventes datos que el usuario no haya proporcionado.\n- No ejecutes la herramienta de registro si no tenés al menos el nombre, la empresa y la calificación definida.\n- Mantené un tono profesional, empático y directo. No des explicaciones técnicas de tu funcionamiento interno.\n\n# HERRAMIENTAS DISPONIBLES\n- registrar_lead (Google Sheets): Usala para guardar el lead una vez calificado.\n- escalar_a_humano_en_slack (Slack): Usala exclusivamente si el prospecto pide hablar con una persona o si sus consultas escapan a la calificación automática.\n",
+          "maxIterations": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -608,
+        -112
+      ],
+      "id": "5243bfd8-b4fe-4446-aadf-056744886c0e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -736,
+        48
+      ],
+      "id": "284d68ec-7cd9-4943-b19b-88939c778100",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kjmva9LLRt0hTFZJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -560,
+        48
+      ],
+      "id": "a98ade88-011a-4866-831c-148f650e644b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Úsala esta herramiento exclusivamente para guardar o registrar los datos consolidados. Debes extraer del mensaje y enviar como parámetros estructurados: nombre, empresa, mail, categoria y resumen del lead una vez calificado. ",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1187Ss3cl8GDy1L4FE9--u9vVm7Ss3Q56Pk79CoGeKro",
+          "mode": "list",
+          "cachedResultName": "registro_base_de_datos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1187Ss3cl8GDy1L4FE9--u9vVm7Ss3Q56Pk79CoGeKro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1187Ss3cl8GDy1L4FE9--u9vVm7Ss3Q56Pk79CoGeKro/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ $fromAI('nombre', 'Nombre y apellido del prospecto') }}",
+            "empresa": "={{ $fromAI('empresa', 'Nombre de la empresa') }}",
+            "categoría": "={{ $fromAI('categoria', 'Calificación asignada: HOT, WARM o COLD') }}",
+            "mail": "={{ $fromAI('mail', 'mail del prospecto') }}",
+            "resumen": "={{ $fromAI('resumen', 'Breve justificación de la calificación') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mail",
+              "displayName": "mail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "categoría",
+              "displayName": "categoría",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumen",
+              "displayName": "resumen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -384,
+        48
+      ],
+      "id": "0d02061f-4da8-4d22-a1a1-ea728892e53e",
+      "name": "registro_base_de_datos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "nY6wTyxi0TNlSePo",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "agosbini@gmail.com",
+        "subject": "=LOG  {{ $('When chat message received').item.json.sessionId }}",
+        "emailType": "text",
+        "message": "=Sesion:  {{ $('When chat message received').item.json.sessionId }}\n\nMensaje del usuario: {{ $('When chat message received').item.json.chatInput }}\n\nMensaje del Agente: {{ $json.output }}\n\nFecha y hora: {{ $now.format('MM-DD HH:mm:ss') }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -112
+      ],
+      "id": "e45d395a-1b68-4881-bc78-7a528f83f211",
+      "name": "Send a message",
+      "webhookId": "48325b78-b0ff-4848-b2d1-36c4e19cf051",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qQmaNMOGaFJWG9ix",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "registro_base_de_datos": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e36fe914-3376-4e71-a46e-20972d13ad84",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b0f515eb5418692ee9e4007e0f88fac42ed937f0726fb74f74f00e678dc45b64"
+  },
+  "nodeGroups": [],
+  "id": "m1Ns8GYaDfYYUrJq",
+  "tags": []
+}
